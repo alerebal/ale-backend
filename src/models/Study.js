@@ -8,4 +8,4 @@ const studySchema = new Schema({
     timestamps: true
 });
 
-module.exports = model('Study', studySchema);
+module.exports = model('AleStudy', studySchema);
