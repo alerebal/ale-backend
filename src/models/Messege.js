@@ -8,4 +8,4 @@ const messegeSchema = new Schema({
     timestamps: true
 })
 
-module.exports = model('Messege', messegeSchema)
+module.exports = model('AleMessage', messegeSchema)
