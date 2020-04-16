@@ -1,7 +1,7 @@
 const { connect } = require('mongoose');
 
 
-const uri = `mongodb+srv://${process.env.MONGO_db}:${process.env.MONGO_KEY}@cluster0-x2ibd.mongodb.net/test?retryWrites=true&w=majority`;
+const uri = `mongodb+srv://testing:1234@cluster0-x2ibd.mongodb.net/test?retryWrites=true&w=majority`;
 
 connect(uri, {
     useNewUrlParser: true,
