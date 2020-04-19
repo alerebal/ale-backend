@@ -1,10 +1,12 @@
 const projectsCtrl = {};
 
 const fs = require('fs-extra');
-const path = require('path');
+const { cloud } = require('../helpers/helpers');
+const cloudinary = require('cloudinary');
 
 const Project = require('../models/Project');
 
+cloudinary.cloud;
 
 projectsCtrl.getProjects = async (req, res) => {
     const projects = await Project.find().sort({updatedAt: 'desc'});
@@ -25,9 +27,12 @@ projectsCtrl.createProject = async (req, res) => {
     const {title, desc, urlFront, frontCode, backCode} = req.body;
     
     if(req.file) {
-        const imagePath = 'uploads/' + req.file.filename;
-        const project = new Project({title, desc, imagePath, urlFront, frontCode, backCode});
+        const result = await cloudinary.v2.uploader.upload(req.file.path);
+        const imagePath = result.url;
+        const image_id = result.public_id
+        const project = new Project({title, desc, imagePath, image_id, urlFront, frontCode, backCode});
         await project.save();
+        await fs.unlink(req.file.path);
         res.json(project);
     } else {
         const project = new Project({title, desc, urlFront, frontCode, backCode});
@@ -39,24 +44,27 @@ projectsCtrl.createProject = async (req, res) => {
 
 projectsCtrl.deleteProject = async (req, res) => {
     const {id} = req.params;
-    const project = await Project.findByIdAndDelete(id);
+    const project = await Project.findById(id);
     if(project.imagePath) {
-        fs.unlink(path.resolve(project.imagePath));
+        await cloudinary.v2.uploader.destroy(project.image_id);
     }
+    await Project.findByIdAndRemove(id);
     res.send('Project has been deleted')
 }
 
 projectsCtrl.updateProject = async (req, res) => {
     const {id} = req.params;
-    const {title, desc, priority} = req.body;
-    const imagePath = 'uploads/' + req.file.filename;
+    const {title, desc, urlFront, frontCode, backCode} = req.body;
     if(req.file) {
         const oldProject = await Project.findById(id);
-        await fs.unlink(path.resolve(oldProject.imagePath));
-        const newProject = await Project.findByIdAndUpdate(id, {title, desc, priority, imagePath}, {new: true});
+        await cloudinary.v2.uploader.destroy(oldProject.image_id);
+        const result = await cloudinary.v2.uploader.upload(req.file.path);
+        const imagePath = result.url;
+        const image_id = result.public_id;
+        const newProject = await Project.findByIdAndUpdate(id, {title, desc, imagePath, image_id, urlFront, frontCode, backCode}, {new: true});
         res.json(newProject)
     } else {
-        const newProject = await Project.findByIdAndUpdate(id, {title, desc, priority}, {new: true});
+        const newProject = await Project.findByIdAndUpdate(id, {title, desc, urlFront, frontCode, backCode}, {new: true});
         res.json(newProject)
     }
 }

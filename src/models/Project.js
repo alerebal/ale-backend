@@ -4,6 +4,7 @@ const projectSchema = new Schema({
     title: String,
     desc: String,
     imagePath: String,
+    image_id: String,
     urlFront: String,
     frontCode: String,
     backCode: String
